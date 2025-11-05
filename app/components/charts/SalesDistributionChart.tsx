@@ -8,6 +8,7 @@ interface DistributionData {
   name: string;
   value: number;
   revenue: number;
+  [key: string]: string | number;
 }
 
 const COLORS = {
