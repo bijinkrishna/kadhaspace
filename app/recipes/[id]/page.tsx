@@ -8,13 +8,13 @@ import {
   Trash2,
   ChefHat,
   Clock,
-  DollarSign,
   Package,
   TrendingUp,
   Calculator,
   Printer,
   Users
 } from 'lucide-react';
+import { usePermissions } from '@/lib/usePermissions';
 
 interface CostBreakdown {
   ingredient_name: string;
@@ -52,6 +52,7 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [portions, setPortions] = useState(1);
   const [loading, setLoading] = useState(true);
+  const { canManageRecipes } = usePermissions();
 
   useEffect(() => {
     async function init() {
@@ -135,49 +136,53 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header - Hide on print */}
-        <div className="flex justify-between items-center mb-6 print:hidden">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6 print:hidden">
           <button
             onClick={() => router.push('/recipes')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-sm sm:text-base text-gray-600 hover:text-gray-900 w-fit"
           >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Recipes
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span>Back to Recipes</span>
           </button>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1 sm:gap-2"
             >
-              <Printer className="w-5 h-5" />
-              Print
+              <Printer className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span>Print</span>
             </button>
-            <button
-              onClick={() => router.push(`/recipes/${recipeId}/edit`)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-            >
-              <Edit className="w-5 h-5" />
-              Edit
-            </button>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
-            >
-              <Trash2 className="w-5 h-5" />
-              Delete
-            </button>
+            {canManageRecipes && (
+              <>
+                <button
+                  onClick={() => router.push(`/recipes/${recipeId}/edit`)}
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-1 sm:gap-2"
+                >
+                  <Edit className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <span>Edit</span>
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-1 sm:gap-2"
+                >
+                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <span>Delete</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
         {/* Recipe Header */}
-        <div className="bg-white rounded-lg shadow p-8 mb-6">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6">
           <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                <ChefHat className="w-10 h-10 text-orange-600" />
-                {recipe.name}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-2 sm:gap-3">
+                <ChefHat className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-orange-600 flex-shrink-0" />
+                <span className="truncate">{recipe.name}</span>
               </h1>
               {recipe.description && (
                 <p className="text-lg text-gray-600">{recipe.description}</p>
@@ -240,11 +245,10 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
         </div>
 
         {/* Cost Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-sm text-gray-600 mb-1">Cost per Portion</div>
-            <div className="text-3xl font-bold text-green-600 flex items-center gap-2">
-              <DollarSign className="w-8 h-8" />
+            <div className="text-3xl font-bold text-green-600">
               ₹{recipe.cost_per_portion.toFixed(2)}
             </div>
             <div className="text-xs text-gray-500 mt-1">
@@ -263,29 +267,19 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-sm text-gray-600 mb-1">Profit per Portion</div>
-            <div className="text-3xl font-bold text-purple-600">
-              ₹{((recipe.selling_price || 0) - recipe.cost_per_portion).toFixed(2)}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              Selling Price - COGS
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-sm text-gray-600 mb-1">Profit Margin</div>
+            <div className="text-sm text-gray-600 mb-1">Cost as % of Selling Price</div>
             <div className={`text-3xl font-bold ${
-              recipe.selling_price && recipe.selling_price > 0 && (((recipe.selling_price - recipe.cost_per_portion) / recipe.selling_price) * 100) >= 30
-                ? 'text-green-600'
-                : 'text-orange-600'
+              recipe.selling_price && recipe.selling_price > 0
+                ? 'text-orange-600'
+                : 'text-gray-400'
             }`}>
               {recipe.selling_price && recipe.selling_price > 0 
-                ? (((recipe.selling_price - recipe.cost_per_portion) / recipe.selling_price) * 100).toFixed(1)
+                ? ((recipe.cost_per_portion / recipe.selling_price) * 100).toFixed(1)
                 : '0.0'
               }%
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              Markup percentage
+              Cost percentage
             </div>
           </div>
         </div>

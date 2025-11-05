@@ -39,13 +39,14 @@ export function ProtectedRoute({
 
 
   useEffect(() => {
-
-    if (!loading && !role) {
-
-      router.push('/login');
-
+    // Don't redirect if already on login page
+    if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+      return;
     }
 
+    if (!loading && !role) {
+      router.push('/login');
+    }
   }, [loading, role, router]);
 
 

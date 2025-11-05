@@ -182,3 +182,14 @@ export interface MovementStats {
   total_items: number;
 }
 
+export type UserRole = 'admin' | 'accounts' | 'manager' | 'staff';
+
+export interface User {
+  id: string;
+  username: string;
+  password_hash: string;
+  role: UserRole;
+  created_at: Date;
+  updated_at: Date;
+}
+

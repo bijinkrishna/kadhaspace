@@ -10,6 +10,7 @@ import {
   X,
   DollarSign
 } from 'lucide-react';
+import { usePermissions } from '@/lib/usePermissions';
 
 interface Ingredient {
   id: string;
@@ -34,6 +35,7 @@ export default function EditRecipePage({ params }: { params: Promise<{ id: strin
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const { canManageRecipes, loading: permissionsLoading } = usePermissions();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -64,6 +66,12 @@ export default function EditRecipePage({ params }: { params: Promise<{ id: strin
       fetchRecipe();
     }
   }, [recipeId]);
+
+  useEffect(() => {
+    if (!permissionsLoading && !canManageRecipes) {
+      router.push('/recipes');
+    }
+  }, [canManageRecipes, permissionsLoading, router]);
 
   const fetchIngredients = async () => {
     try {
@@ -233,12 +241,16 @@ export default function EditRecipePage({ params }: { params: Promise<{ id: strin
     }
   };
 
-  if (loadingData) {
+  if (permissionsLoading || loadingData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-xl">Loading recipe...</div>
       </div>
     );
+  }
+
+  if (!canManageRecipes) {
+    return null; // Will redirect via useEffect
   }
 
   const categories = ['Appetizers', 'Main Course', 'Desserts', 'Beverages', 'Sides', 'Breakfast', 'Snacks'];

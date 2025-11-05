@@ -12,6 +12,7 @@ import {
   Trash2,
   Filter
 } from 'lucide-react';
+import { usePermissions } from '@/lib/usePermissions';
 
 interface Recipe {
   id: string;
@@ -33,6 +34,7 @@ export default function RecipesPage() {
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
+  const { canManageRecipes } = usePermissions();
 
   useEffect(() => {
     fetchRecipes();
@@ -92,28 +94,30 @@ export default function RecipesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <ChefHat className="w-8 h-8 text-orange-600" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
+              <ChefHat className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600 flex-shrink-0" />
               Recipe Management
             </h1>
-            <p className="text-gray-600 mt-1">Manage recipes and calculate COGS</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Manage recipes and calculate COGS</p>
           </div>
-          <button
-            onClick={() => router.push('/recipes/new')}
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Create Recipe
-          </button>
+          {canManageRecipes && (
+            <button
+              onClick={() => router.push('/recipes/new')}
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center justify-center gap-1 sm:gap-2"
+            >
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span>Create Recipe</span>
+            </button>
+          )}
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-4 sm:mb-6">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-sm text-gray-600 mb-1">Total Recipes</div>
             <div className="text-3xl font-bold text-gray-900">{recipes.length}</div>
@@ -255,19 +259,23 @@ export default function RecipesPage() {
                     <Eye className="w-4 h-4" />
                     View
                   </button>
-                  <button
-                    onClick={() => router.push(`/recipes/${recipe.id}/edit`)}
-                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(recipe.id, recipe.name)}
-                    className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {canManageRecipes && (
+                    <>
+                      <button
+                        onClick={() => router.push(`/recipes/${recipe.id}/edit`)}
+                        className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(recipe.id, recipe.name)}
+                        className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

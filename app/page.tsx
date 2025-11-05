@@ -218,11 +218,11 @@ export default function Dashboard() {
   const maxBarValue = Math.max(salesData.revenue, salesData.cogs, salesData.profit, 1);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Overview of your inventory and sales</p>
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Overview of your inventory and sales</p>
         </div>
 
         {/* Sales Comparison Analysis */}
@@ -239,35 +239,35 @@ export default function Dashboard() {
           <ProfitMarginChart />
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
             <button
               onClick={() => router.push('/intends/new')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md font-medium"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md font-medium text-xs sm:text-base"
             >
-              <Plus className="w-5 h-5 text-gray-700" />
-              <span className="text-gray-700">New Intend</span>
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
+              <span className="text-gray-700 text-center">New Intend</span>
             </button>
             <button
               onClick={() => router.push('/recipes/new')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md font-medium"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md font-medium text-xs sm:text-base"
             >
-              <ChefHat className="w-5 h-5 text-gray-700" />
-              <span className="text-gray-700">New Recipe</span>
+              <ChefHat className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
+              <span className="text-gray-700 text-center">New Recipe</span>
             </button>
             <button
               onClick={() => router.push('/purchase-orders')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md font-medium"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md font-medium text-xs sm:text-base"
             >
-              <PackageCheck className="w-5 h-5 text-gray-700" />
-              <span className="text-gray-700">Receive Stock</span>
+              <PackageCheck className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
+              <span className="text-gray-700 text-center">Receive Stock</span>
             </button>
             <button
               onClick={() => router.push('/payments')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md font-medium"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-all shadow-sm hover:shadow-md font-medium text-xs sm:text-base"
             >
-              <CreditCard className="w-5 h-5 text-gray-700" />
-              <span className="text-gray-700">Record Payment</span>
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
+              <span className="text-gray-700 text-center">Record Payment</span>
             </button>
           </div>
         </div>

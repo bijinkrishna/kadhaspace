@@ -9,6 +9,7 @@ import { Toast } from '@/app/components/Toast';
 import { StockAdjustmentModal } from '@/app/components/StockAdjustmentModal';
 import { useSortable } from '@/lib/useSortable';
 import { SortableHeader } from '@/app/components/SortableHeader';
+import { usePermissions } from '@/lib/usePermissions';
 
 interface StockIngredient extends Ingredient {
   stock_quantity: number;
@@ -24,6 +25,7 @@ export default function StockPage() {
   const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
   const [selectedIngredient, setSelectedIngredient] = useState<StockIngredient | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const { canAdjustStock } = usePermissions();
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
@@ -176,37 +178,41 @@ export default function StockPage() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Stock Management</h1>
-          <div className="flex gap-3">
+      <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Stock Management</h1>
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               onClick={() => {
                 console.log('Manual refresh clicked');
                 fetchStock();
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1 sm:gap-2"
               title="Refresh stock data"
             >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
+              <RefreshCw className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Refresh</span>
             </button>
-            <button
-              onClick={() => {
-                setSelectedIngredient(null);
-                setShowAdjustmentModal(true);
-              }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Stock Adjustment
-            </button>
+            {canAdjustStock && (
+              <button
+                onClick={() => {
+                  setSelectedIngredient(null);
+                  setShowAdjustmentModal(true);
+                }}
+                className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 sm:gap-2"
+              >
+                <Plus className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Stock Adjustment</span>
+                <span className="sm:hidden">Adjust</span>
+              </button>
+            )}
             <button
               onClick={handleExportCSV}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1 sm:gap-2"
             >
-              <Download className="w-4 h-4" />
-              Export CSV
+              <Download className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Export CSV</span>
+              <span className="sm:hidden">Export</span>
             </button>
             {/* <Link
               href="/stock/history"
@@ -273,8 +279,8 @@ export default function StockPage() {
           </div>
         ) : (
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-3 sm:mx-0">
+              <table className="w-full min-w-[800px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <SortableHeader
@@ -391,15 +397,17 @@ export default function StockPage() {
                           </td>
                           <td className="px-4 py-3 text-center">
                             <div className="flex gap-2 justify-center">
-                              <button
-                                onClick={() => {
-                                  setSelectedIngredient(ingredient);
-                                  setShowAdjustmentModal(true);
-                                }}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
-                              >
-                                Adjust
-                              </button>
+                              {canAdjustStock && (
+                                <button
+                                  onClick={() => {
+                                    setSelectedIngredient(ingredient);
+                                    setShowAdjustmentModal(true);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                                >
+                                  Adjust
+                                </button>
+                              )}
                               <Link
                                 href={`/stock/history/${ingredient.id}`}
                                 className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"

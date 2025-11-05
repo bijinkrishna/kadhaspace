@@ -1,72 +1,69 @@
 import { useEffect, useState } from 'react';
 
-import { createBrowserClient } from '@supabase/ssr';
-
-
-
 export type UserRole = 'admin' | 'accounts' | 'manager' | 'staff' | null;
 
-
-
 export function useUserRole() {
-
   const [role, setRole] = useState<UserRole>(null);
-
+  const [username, setUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-
-
   useEffect(() => {
-
-    async function fetchRole() {
-
+    async function checkSession() {
       try {
+        // Check localStorage first (client-side)
+        if (typeof window !== 'undefined') {
+          const storedRole = localStorage.getItem('user_role') as UserRole;
+          const storedUsername = localStorage.getItem('user_username');
+          const token = localStorage.getItem('auth_token');
+          
+          if (token && storedRole) {
+            // Verify session with API
+            const response = await fetch('/api/auth/session', {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            });
 
-        const { data, error } = await supabase.rpc('get_user_role');
-
-        
-
-        if (error) {
-
-          console.error('Error fetching role:', error);
-
-          setRole(null);
-
-        } else {
-
-          setRole(data as UserRole);
-
+            if (response.ok) {
+              const data = await response.json();
+              if (data.authenticated) {
+                // Always use API response for role and username (most up-to-date)
+                setRole(data.role || storedRole);
+                setUsername(data.username || null);
+                // Update localStorage with fresh data from API
+                if (data.role) {
+                  localStorage.setItem('user_role', data.role);
+                }
+                if (data.username) {
+                  localStorage.setItem('user_username', data.username);
+                }
+                setLoading(false);
+                return;
+              }
+            }
+          }
+          
+          // If no valid session, clear storage
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user_role');
+          localStorage.removeItem('user_username');
         }
-
-      } catch (err) {
-
-        console.error('Error:', err);
-
+        
         setRole(null);
-
+        setUsername(null);
+      } catch (err) {
+        console.error('Error checking session:', err);
+        setRole(null);
+        setUsername(null);
       } finally {
-
         setLoading(false);
-
       }
-
     }
 
+    checkSession();
+  }, []);
 
-
-    fetchRole();
-
-  }, [supabase]);
-
-
-
-  return { role, loading };
-
+  return { role, username, loading };
 }
 
 
@@ -75,7 +72,7 @@ export function useUserRole() {
 
 export function usePermissions() {
 
-  const { role, loading } = useUserRole();
+  const { role, username, loading } = useUserRole();
 
 
 
@@ -169,7 +166,7 @@ export function usePermissions() {
 
 
 
-  return { ...permissions, role, loading };
+  return { ...permissions, role, username, loading };
 
 }
 

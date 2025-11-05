@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Loader2 } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Plus, Edit, Trash2, Loader2, Search } from 'lucide-react';
 import { Ingredient } from '@/types';
 import { Toast } from '@/app/components/Toast';
 import { Loading } from '@/app/components/Loading';
 import { ConfirmationDialog } from '@/app/components/ConfirmationDialog';
 import { useSortable } from '@/lib/useSortable';
 import { SortableHeader } from '@/app/components/SortableHeader';
+import { usePermissions } from '@/lib/usePermissions';
 
 interface IngredientFormData {
   name: string;
@@ -190,8 +191,23 @@ export default function IngredientsPage() {
     ingredient: null,
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const { canManageIngredients } = usePermissions();
 
-  const { sortedData, handleSort, sortConfig } = useSortable(ingredients);
+  // Filter ingredients based on search term
+  const filteredIngredients = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return ingredients;
+    }
+    const searchLower = searchTerm.toLowerCase();
+    return ingredients.filter(
+      (ingredient) =>
+        ingredient.name.toLowerCase().includes(searchLower) ||
+        ingredient.unit.toLowerCase().includes(searchLower)
+    );
+  }, [ingredients, searchTerm]);
+
+  const { sortedData, handleSort, sortConfig } = useSortable(filteredIngredients);
 
   useEffect(() => {
     fetchIngredients();
@@ -318,25 +334,44 @@ export default function IngredientsPage() {
 
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">
             Ingredients
           </h1>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button
               onClick={() => fetchIngredients()}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150"
             >
               Refresh
             </button>
-            <button
-              onClick={handleAdd}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150 flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Ingredient
-            </button>
+            {canManageIngredients && (
+              <button
+                onClick={handleAdd}
+                className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150 flex items-center gap-1 sm:gap-2"
+              >
+                <Plus className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Add Ingredient</span>
+                <span className="sm:hidden">Add</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Search Box */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search ingredients by name or unit..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+            />
           </div>
         </div>
 
@@ -346,6 +381,12 @@ export default function IngredientsPage() {
           <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <p className="text-gray-600 dark:text-gray-400">
               No ingredients found. Add your first ingredient to get started.
+            </p>
+          </div>
+        ) : filteredIngredients.length === 0 ? (
+          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <p className="text-gray-600 dark:text-gray-400">
+              No ingredients found matching &quot;{searchTerm}&quot;. Try a different search term.
             </p>
           </div>
         ) : (
@@ -429,22 +470,24 @@ export default function IngredientsPage() {
                             {ingredient.min_stock}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => handleEdit(ingredient)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-150 hover:scale-110 active:scale-95"
-                                aria-label="Edit ingredient"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteClick(ingredient)}
-                                className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-150 hover:scale-110 active:scale-95"
-                                aria-label="Delete ingredient"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
+                            {canManageIngredients && (
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => handleEdit(ingredient)}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-150 hover:scale-110 active:scale-95"
+                                  aria-label="Edit ingredient"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteClick(ingredient)}
+                                  className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-150 hover:scale-110 active:scale-95"
+                                  aria-label="Delete ingredient"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       );
@@ -480,20 +523,24 @@ export default function IngredientsPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 ml-4">
-                        <button
-                          onClick={() => handleEdit(ingredient)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-150 active:scale-95"
-                          aria-label="Edit ingredient"
-                        >
-                          <Edit className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(ingredient)}
-                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-150 active:scale-95"
-                          aria-label="Delete ingredient"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
+                        {canManageIngredients && (
+                          <>
+                            <button
+                              onClick={() => handleEdit(ingredient)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-150 active:scale-95"
+                              aria-label="Edit ingredient"
+                            >
+                              <Edit className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(ingredient)}
+                              className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-150 active:scale-95"
+                              aria-label="Delete ingredient"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 dark:border-gray-700">

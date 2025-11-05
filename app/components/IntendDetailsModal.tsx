@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { Intend, IntendItem, Ingredient } from '@/types';
 import GeneratePOModal from '@/app/components/GeneratePOModal';
+import { usePermissions } from '@/lib/usePermissions';
 
 interface IntendItemWithDetails extends IntendItem {
   ingredient: Ingredient | null;
@@ -47,6 +48,7 @@ export function IntendDetailsModal({
   const [selectedItems, setSelectedItems] = useState<Record<string, SelectedItem>>({});
   const [orderQuantities, setOrderQuantities] = useState<Record<string, number>>({});
   const [isGeneratePOModalOpen, setIsGeneratePOModalOpen] = useState(false);
+  const { canCreatePO } = usePermissions();
 
   useEffect(() => {
     if (isOpen && intendId) {
@@ -375,9 +377,11 @@ export function IntendDetailsModal({
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                              Select
-                            </th>
+                            {canCreatePO && (
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                Select
+                              </th>
+                            )}
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                               Ingredient
                             </th>
@@ -407,20 +411,22 @@ export function IntendDetailsModal({
                                 className={isInPO ? 'bg-gray-50' : 'hover:bg-gray-50'}
                               >
                                 {/* Select column */}
-                                <td className="px-4 py-3">
-                                  {!isInPO ? (
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      onChange={(e) => handleSelect(item, e.target.checked)}
-                                      className="rounded border-gray-300"
-                                    />
-                                  ) : (
-                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded inline-block">
-                                      In PO: {item.po_number || 'N/A'}
-                                    </span>
-                                  )}
-                                </td>
+                                {canCreatePO && (
+                                  <td className="px-4 py-3">
+                                    {!isInPO ? (
+                                      <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={(e) => handleSelect(item, e.target.checked)}
+                                        className="rounded border-gray-300"
+                                      />
+                                    ) : (
+                                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded inline-block">
+                                        In PO: {item.po_number || 'N/A'}
+                                      </span>
+                                    )}
+                                  </td>
+                                )}
 
                                 {/* Ingredient name */}
                                 <td className="px-4 py-3 text-sm font-medium text-gray-900">
@@ -486,12 +492,35 @@ export function IntendDetailsModal({
                 </div>
 
                 {/* Bottom Section */}
-                <div className="border-t border-gray-200 pt-4 mt-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
-                      Selected: {selectedItemsArray.length} {selectedItemsArray.length === 1 ? 'item' : 'items'}
+                {canCreatePO && (
+                  <div className="border-t border-gray-200 pt-4 mt-4">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">
+                        Selected: {selectedItemsArray.length} {selectedItemsArray.length === 1 ? 'item' : 'items'}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={onClose}
+                          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          Close
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleGeneratePO}
+                          disabled={!canGeneratePO}
+                          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Generate PO
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                  </div>
+                )}
+                {!canCreatePO && (
+                  <div className="border-t border-gray-200 pt-4 mt-4">
+                    <div className="flex items-center justify-end">
                       <button
                         type="button"
                         onClick={onClose}
@@ -499,17 +528,9 @@ export function IntendDetailsModal({
                       >
                         Close
                       </button>
-                      <button
-                        type="button"
-                        onClick={handleGeneratePO}
-                        disabled={!canGeneratePO}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        Generate PO
-                      </button>
                     </div>
                   </div>
-                </div>
+                )}
               </>
             ) : (
               <div className="text-center py-12 text-gray-500">

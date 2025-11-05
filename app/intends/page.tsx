@@ -349,24 +349,25 @@ export default function IntendsPage() {
   return (
     <>
       <div>
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Intends</h1>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Intends</h1>
           <button
             onClick={() => setIsNewIntendModalOpen(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            className="bg-blue-600 text-white px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-1 sm:gap-2"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             <span>New Intend</span>
           </button>
         </div>
 
         {intends.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <p className="text-gray-500">No intends found. Create your first intend to get started.</p>
+          <div className="bg-white rounded-lg shadow p-4 sm:p-8 text-center">
+            <p className="text-sm sm:text-base text-gray-500">No intends found. Create your first intend to get started.</p>
           </div>
         ) : (
           <div className="w-full bg-white rounded-lg shadow overflow-hidden">
-                <table className="w-full">
+            <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px]">
               <thead className="bg-gray-50">
                     <tr>
                   <SortableHeader
@@ -451,6 +452,7 @@ export default function IntendsPage() {
               </tbody>
             </table>
             </div>
+          </div>
         )}
       </div>
 
