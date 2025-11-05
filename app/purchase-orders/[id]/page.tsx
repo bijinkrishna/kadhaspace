@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, CheckCircle, Trash2, Loader2, ArrowLeft, Package, Calendar, User, DollarSign, CreditCard, Plus } from 'lucide-react';
+import { X, Trash2, Loader2, ArrowLeft, Package, Calendar, User, DollarSign, CreditCard, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Toast } from '@/app/components/Toast';
 import { IntendDetailsModal } from '@/app/components/IntendDetailsModal';
@@ -59,7 +59,6 @@ export default function PODetailPage({
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showIntendModal, setShowIntendModal] = useState(false);
   const [payments, setPayments] = useState<any[]>([]);
@@ -132,34 +131,6 @@ export default function PODetailPage({
       });
     } catch {
       return 'Invalid date';
-    }
-  };
-
-  const handleConfirmPO = async () => {
-    try {
-      setIsUpdating(true);
-      const response = await fetch(`/api/purchase-orders/${poId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'confirmed' }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to confirm purchase order');
-      }
-
-      await fetchPO();
-      showToast('Purchase order confirmed successfully', 'success');
-      setShowConfirmModal(false); // Close modal after confirmation
-    } catch (error) {
-      console.error('Error confirming purchase order:', error);
-      const message = error instanceof Error ? error.message : 'Failed to confirm purchase order';
-      showToast(message, 'error');
-    } finally {
-      setIsUpdating(false);
     }
   };
 
@@ -553,24 +524,14 @@ export default function PODetailPage({
         {/* Actions */}
         <div className="mt-6 flex gap-3">
           {isPending && (
-            <>
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => setShowConfirmModal(true)}
-                disabled={isUpdating}
-              >
-                <CheckCircle className="w-4 h-4" />
-                Confirm PO
-              </button>
-              <button
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => setShowDeleteModal(true)}
-                disabled={isUpdating}
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
-            </>
+            <button
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => setShowDeleteModal(true)}
+              disabled={isUpdating}
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </button>
           )}
           {po.status === 'partially_received' && (
             <button
@@ -582,43 +543,6 @@ export default function PODetailPage({
           )}
         </div>
       </div>
-
-      {/* Confirm PO Modal */}
-      {showConfirmModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={() => setShowConfirmModal(false)}
-        >
-          <div
-            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold mb-4">Confirm Purchase Order</h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to confirm <span className="font-semibold">{po.po_number}</span>? This will mark it as confirmed.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                disabled={isUpdating}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  await handleConfirmPO();
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isUpdating}
-              >
-                {isUpdating && <Loader2 className="w-4 h-4 animate-spin" />}
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Delete PO Modal */}
       {showDeleteModal && (

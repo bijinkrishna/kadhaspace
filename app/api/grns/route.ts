@@ -65,16 +65,53 @@ export async function POST(request: Request) {
 
     if (poError) throw poError;
 
-    // Generate GRN number
-    const { data: grnNumberData, error: grnNumberError } = await supabase.rpc(
-      'generate_grn_number'
-    );
+    // Generate unique GRN number with date + counter (similar to adjustment numbers)
+    const today = new Date();
+    const todayStr = received_date || today.toISOString().split('T')[0]; // Use received_date or today
+    const dateStr = todayStr.replace(/-/g, ''); // YYYYMMDD
+    
+    // Get count of GRNs created today to create sequential number
+    const { count } = await supabase
+      .from('grns')
+      .select('*', { count: 'exact', head: true })
+      .eq('received_date', todayStr);
 
-    if (grnNumberError) throw grnNumberError;
-    const grnNumber = grnNumberData;
+    const sequentialNumber = (count || 0) + 1;
+    let grnNumber = `GRN-${dateStr}-${String(sequentialNumber).padStart(3, '0')}`;
+    // Format: GRN-20251105-001, GRN-20251105-002, etc.
+
+    // Double-check uniqueness and retry if needed
+    let retries = 0;
+    const maxRetries = 3;
+    while (retries < maxRetries) {
+      const { data: existing } = await supabase
+        .from('grns')
+        .select('grn_number')
+        .eq('grn_number', grnNumber)
+        .maybeSingle();
+
+      if (!existing) {
+        break; // Number is unique, proceed
+      }
+
+      // If collision, increment sequence number
+      retries++;
+      const newSequentialNumber = sequentialNumber + retries;
+      grnNumber = `GRN-${dateStr}-${String(newSequentialNumber).padStart(3, '0')}`;
+    }
+
+    if (retries >= maxRetries) {
+      // Fallback: use timestamp + random suffix if still colliding
+      const timestamp = Date.now().toString().slice(-6);
+      const randomSuffix = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+      grnNumber = `GRN-${dateStr}-${timestamp}${randomSuffix}`;
+    }
 
     // Create GRN
-    const { data: grn, error: grnError } = await supabase
+    let grn: any;
+    let grnError: any;
+    
+    const { data: grnData, error: grnErr } = await supabase
       .from('grns')
       .insert({
         grn_number: grnNumber,
@@ -87,7 +124,45 @@ export async function POST(request: Request) {
       .select()
       .single();
 
-    if (grnError) throw grnError;
+    grn = grnData;
+    grnError = grnErr;
+
+    if (grnError) {
+      // Check if it's a duplicate key error (race condition)
+      if (grnError.code === '23505' && grnError.message?.includes('grn_number')) {
+        console.error('Duplicate GRN number detected:', grnNumber);
+        // Retry with a new number
+        const retryDateStr = todayStr.replace(/-/g, '');
+        const timestamp = Date.now().toString().slice(-6);
+        const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        const retryGrnNumber = `GRN-${retryDateStr}-${timestamp}${randomSuffix}`;
+        
+        const { data: retryGrn, error: retryError } = await supabase
+          .from('grns')
+          .insert({
+            grn_number: retryGrnNumber,
+            po_id,
+            received_date: received_date || new Date().toISOString().split('T')[0],
+            received_by,
+            notes,
+            status: 'completed',
+          })
+          .select()
+          .single();
+
+        if (retryError) throw retryError;
+        
+        // Use retry GRN for rest of processing
+        grn = retryGrn;
+        grnNumber = retryGrnNumber;
+      } else {
+        throw grnError;
+      }
+    }
+
+    if (!grn) {
+      throw new Error('Failed to create GRN');
+    }
 
     // Process each item
     for (const item of items) {

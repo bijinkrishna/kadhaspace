@@ -106,7 +106,7 @@ export default function CashLedgerPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `₹${Math.round(amount).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };
 
   const { sortedData: sortedTransactions, handleSort, sortConfig } = useSortable<LedgerTransaction>(
