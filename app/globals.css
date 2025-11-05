@@ -11,8 +11,25 @@
     border-color: hsl(var(--border));
   }
   
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
   body {
     background-color: rgb(249 250 251);
     color: rgb(17 24 39);
+    overflow-x: hidden;
+  }
+  
+  /* Ensure images are responsive */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Prevent horizontal scroll */
+  * {
+    box-sizing: border-box;
   }
 }

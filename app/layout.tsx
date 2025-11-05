@@ -1,10 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppLayout } from "@/app/components/AppLayout";
 
 export const metadata: Metadata = {
   title: "Kadha Cafe - Inventory Management",
   description: "Inventory management system for Kadha Cafe",
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({

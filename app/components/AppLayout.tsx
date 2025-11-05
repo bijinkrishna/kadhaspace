@@ -59,7 +59,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Layout */}
-      <div className="flex">
+      <div className="flex relative">
         {/* Mobile Overlay */}
         {sidebarOpen && (
           <div
@@ -71,9 +71,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Sidebar */}
         <aside
           className={`
-            fixed top-0 left-0 z-50 h-full w-64 bg-white shadow-lg border-r transform transition-transform duration-300 ease-in-out
-            lg:relative lg:translate-x-0 lg:z-auto
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            fixed top-0 left-0 z-50 h-screen w-64 sm:w-64 bg-white shadow-lg border-r transform transition-transform duration-300 ease-in-out
+            lg:relative lg:translate-x-0 lg:z-auto lg:h-auto lg:min-h-screen
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           `}
         >
           <nav className="p-3 sm:p-4 space-y-1 sm:space-y-2 h-full overflow-y-auto">
@@ -202,10 +202,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 w-full lg:w-auto min-w-0 p-3 sm:p-4 lg:p-6 xl:p-8">
-          <ProtectedRoute>
-            {children}
-          </ProtectedRoute>
+        <main className="flex-1 w-full lg:w-auto min-w-0 max-w-full overflow-x-hidden p-3 sm:p-4 lg:p-6 xl:p-8">
+          <div className="w-full max-w-full">
+            <ProtectedRoute>
+              {children}
+            </ProtectedRoute>
+          </div>
         </main>
       </div>
     </div>
