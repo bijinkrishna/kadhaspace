@@ -56,8 +56,9 @@ export function IngredientMovementDashboard() {
         
         if (category === 'fast_moving' || category === 'medium_moving' || 
             category === 'slow_moving' || category === 'dead_stock') {
-          statsWithValues[category].count++;
-          statsWithValues[category].inventoryValue += inventoryValue;
+          const categoryKey = category as 'fast_moving' | 'medium_moving' | 'slow_moving' | 'dead_stock';
+          statsWithValues[categoryKey].count++;
+          statsWithValues[categoryKey].inventoryValue += inventoryValue;
         }
         statsWithValues.total_items++;
       });
