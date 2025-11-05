@@ -146,7 +146,7 @@ export async function POST(request: Request) {
               currentTotalPaid: totalPaid,
               paymentAmount,
               totalPaidAfterPayment,
-              grnCount: grns.length,
+              grnCount: grns?.length || 0,
             },
           },
           { status: 400 }
