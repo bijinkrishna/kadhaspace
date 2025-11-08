@@ -48,26 +48,46 @@ export function RoleGate({ children, allowedRoles, fallback }: RoleGateProps) {
 
 // Convenience components
 
-export function AdminOnly({ children }: { children: React.ReactNode }) {
-
-  return <RoleGate allowedRoles={['admin']}>{children}</RoleGate>;
-
+export function AdminOnly({
+  children,
+  fallback,
+}: {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}) {
+  return (
+    <RoleGate allowedRoles={['admin']} fallback={fallback}>
+      {children}
+    </RoleGate>
+  );
 }
 
-
-
-export function AccountsOnly({ children }: { children: React.ReactNode }) {
-
-  return <RoleGate allowedRoles={['admin', 'accounts']}>{children}</RoleGate>;
-
+export function AccountsOnly({
+  children,
+  fallback,
+}: {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}) {
+  return (
+    <RoleGate allowedRoles={['admin', 'accounts']} fallback={fallback}>
+      {children}
+    </RoleGate>
+  );
 }
 
-
-
-export function ManagerOnly({ children }: { children: React.ReactNode }) {
-
-  return <RoleGate allowedRoles={['admin', 'accounts', 'manager']}>{children}</RoleGate>;
-
+export function ManagerOnly({
+  children,
+  fallback,
+}: {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}) {
+  return (
+    <RoleGate allowedRoles={['admin', 'accounts', 'manager']} fallback={fallback}>
+      {children}
+    </RoleGate>
+  );
 }
 
 
