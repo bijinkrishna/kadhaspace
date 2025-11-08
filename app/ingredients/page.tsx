@@ -9,6 +9,7 @@ import { ConfirmationDialog } from '@/app/components/ConfirmationDialog';
 import { useSortable } from '@/lib/useSortable';
 import { SortableHeader } from '@/app/components/SortableHeader';
 import { usePermissions } from '@/lib/usePermissions';
+import { formatNumber } from '@/lib/formatNumber';
 
 interface IngredientFormData {
   name: string;
@@ -124,14 +125,13 @@ function IngredientModal({
               min="0"
               inputMode="decimal"
               value={formData.current_stock}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  current_stock: parseFloat(e.target.value) || 0,
-                })
-              }
-              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all"
+              disabled
+              readOnly
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed transition-all"
             />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Current stock is managed through the Stock page
+            </p>
           </div>
           <div>
             <label
@@ -181,6 +181,7 @@ function IngredientModal({
 
 export default function IngredientsPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [stockData, setStockData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
@@ -211,12 +212,14 @@ export default function IngredientsPage() {
 
   useEffect(() => {
     fetchIngredients();
+    fetchStockData();
   }, []);
 
   // Auto-refresh when page gains focus
   useEffect(() => {
     const handleFocus = () => {
       fetchIngredients();
+      fetchStockData();
     };
     
     window.addEventListener('focus', handleFocus);
@@ -244,6 +247,35 @@ export default function IngredientsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchStockData = async () => {
+    try {
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/stock?_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch stock data');
+      }
+      const data = await response.json();
+      setStockData(data);
+    } catch (error) {
+      console.error('Error fetching stock data:', error);
+      // Don't show toast for stock fetch failure, just log it
+    }
+  };
+
+  // Helper function to get current stock from stock data
+  const getCurrentStock = (ingredientId: string): number => {
+    const stockItem = stockData.find((item) => item.id === ingredientId);
+    if (stockItem) {
+      return stockItem.stock_quantity != null ? stockItem.stock_quantity : (stockItem.current_stock != null ? stockItem.current_stock : 0);
+    }
+    return 0;
   };
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -282,6 +314,7 @@ export default function IngredientsPage() {
       showToast('Ingredient deleted successfully', 'success');
       setDeleteDialog({ isOpen: false, ingredient: null });
       fetchIngredients();
+      fetchStockData();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Failed to delete ingredient. Please try again.';
@@ -300,12 +333,23 @@ export default function IngredientsPage() {
         : '/api/ingredients';
       const method = editingIngredient ? 'PUT' : 'POST';
 
+      // For new ingredients, exclude current_stock (will default to 0)
+      // For editing, only update current_stock if it's explicitly provided (but it's disabled, so it won't change)
+      const payload = editingIngredient 
+        ? formData 
+        : {
+            name: formData.name,
+            unit: formData.unit,
+            min_stock: formData.min_stock,
+            // current_stock is excluded for new ingredients
+          };
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -323,6 +367,7 @@ export default function IngredientsPage() {
       setEditingIngredient(null);
       // Reset form will happen automatically via useEffect when isOpen changes
       await fetchIngredients();
+      await fetchStockData();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Failed to save ingredient. Please try again.';
@@ -440,7 +485,7 @@ export default function IngredientsPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-900">
                     {sortedData.map((ingredient) => {
-                      const currentStock = ingredient.current_stock || 0;
+                      const currentStock = getCurrentStock(ingredient.id);
                       const isLowStock = currentStock < ingredient.min_stock;
                       return (
                         <tr
@@ -464,10 +509,10 @@ export default function IngredientsPage() {
                             {ingredient.unit}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
-                            {ingredient.current_stock || 0} {ingredient.unit}
+                            {formatNumber(currentStock)} {ingredient.unit}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {ingredient.min_stock}
+                            {formatNumber(ingredient.min_stock)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             {canManageIngredients && (
@@ -500,7 +545,7 @@ export default function IngredientsPage() {
             {/* Mobile Card View */}
             <div className="lg:hidden space-y-4">
               {ingredients.map((ingredient) => {
-                const currentStock = ingredient.current_stock || 0;
+                const currentStock = getCurrentStock(ingredient.id);
                 const isLowStock = currentStock < ingredient.min_stock;
                 return (
                   <div
@@ -557,7 +602,7 @@ export default function IngredientsPage() {
                           Min Stock
                         </p>
                         <p className="text-sm text-gray-900 dark:text-white font-medium">
-                          {ingredient.min_stock}
+                          {formatNumber(ingredient.min_stock)}
                         </p>
                       </div>
                       <div className="col-span-2">
@@ -567,7 +612,7 @@ export default function IngredientsPage() {
                         <p className={`text-lg font-bold ${
                           isLowStock ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'
                         }`}>
-                          {ingredient.current_stock || 0} {ingredient.unit}
+                          {formatNumber(currentStock)} {ingredient.unit}
                         </p>
                       </div>
                     </div>

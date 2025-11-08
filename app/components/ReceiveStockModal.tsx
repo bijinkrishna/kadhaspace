@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { POItem, PurchaseOrder } from '@/types';
+import { formatNumber } from '@/lib/formatNumber';
 
 interface POWithItems extends PurchaseOrder {
   items?: Array<POItem & { ingredient_name: string; unit: string }>;
@@ -311,12 +312,12 @@ export function ReceiveStockModal({
                               <input
                                 type="number"
                                 min="0"
-                                step="0.1"
+                                step="1"
                                 value={receivingNow}
                                 onChange={(e) =>
                                   setReceivedQuantities({
                                     ...receivedQuantities,
-                                    [item.id]: parseFloat(e.target.value) || 0,
+                                    [item.id]: parseInt(e.target.value, 10) || 0,
                                   })
                                 }
                                 className="w-20 border border-gray-300 rounded px-2 py-1 text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -334,18 +335,18 @@ export function ReceiveStockModal({
                               {qtyVar}
                             </td>
                             <td className="px-3 py-2 text-right text-gray-900">
-                              ₹{item.unit_price?.toFixed(2)}
+                              ₹{formatNumber(item.unit_price || 0)}
                             </td>
                             <td className="px-3 py-2">
                               <input
                                 type="number"
                                 min="0"
-                                step="0.01"
+                                step="1"
                                 value={actualPrices[item.id] || 0}
                                 onChange={(e) =>
                                   setActualPrices({
                                     ...actualPrices,
-                                    [item.id]: parseFloat(e.target.value) || 0,
+                                    [item.id]: parseInt(e.target.value, 10) || 0,
                                   })
                                 }
                                 className="w-24 border border-gray-300 rounded px-2 py-1 text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -356,10 +357,10 @@ export function ReceiveStockModal({
                                 item.id
                               )}`}
                             >
-                              {priceVar > 0 ? '+' : ''}₹{priceVar.toFixed(2)}
+                              {priceVar > 0 ? '+' : ''}₹{formatNumber(priceVar)}
                             </td>
                             <td className="px-3 py-2 text-right font-semibold text-gray-900">
-                              ₹{lineTotal.toFixed(2)}
+                              ₹{formatNumber(lineTotal)}
                             </td>
                             <td className="px-3 py-2">
                               <input
@@ -413,7 +414,7 @@ export function ReceiveStockModal({
                   <div className="text-right md:col-start-4">
                     <span className="text-sm text-gray-600">Grand Total:</span>
                     <span className="ml-2 text-xl font-bold text-gray-900">
-                      ₹{grandTotal.toFixed(2)}
+                      ₹{formatNumber(grandTotal)}
                     </span>
                   </div>
                 </div>

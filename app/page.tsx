@@ -25,6 +25,7 @@ import { RevenueTrendChart } from '@/app/components/charts/RevenueTrendChart';
 import { DailySalesChart } from '@/app/components/charts/DailySalesChart';
 import { MonthlyComparisonChart } from '@/app/components/charts/MonthlyComparisonChart';
 import { ProfitMarginChart } from '@/app/components/charts/ProfitMarginChart';
+import OpexTile from '@/app/components/OpexTile';
 
 interface DashboardData {
   totalIngredients: number;
@@ -227,6 +228,9 @@ export default function Dashboard() {
 
         {/* Sales Comparison Analysis */}
         <SalesComparison />
+
+        {/* Operating Expenses Tile */}
+        <OpexTile />
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

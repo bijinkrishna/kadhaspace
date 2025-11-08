@@ -13,6 +13,7 @@ import {
   Printer,
   AlertCircle
 } from 'lucide-react';
+import { formatNumber } from '@/lib/formatNumber';
 
 interface SaleDetail {
   id: string;
@@ -162,7 +163,7 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
             <div className="text-sm text-gray-600 mb-1">Total Revenue</div>
             <div className="text-3xl font-bold text-green-600 flex items-center gap-2">
               <DollarSign className="w-8 h-8" />
-              ₹{sale.total_revenue.toFixed(2)}
+              ₹{formatNumber(sale.total_revenue)}
             </div>
             <div className="text-xs text-gray-500 mt-1">{sale.total_dishes} dishes sold</div>
           </div>
@@ -170,7 +171,7 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-sm text-gray-600 mb-1">Total Cost (COGS)</div>
             <div className="text-3xl font-bold text-orange-600">
-              ₹{sale.total_cost.toFixed(2)}
+              ₹{formatNumber(sale.total_cost)}
             </div>
             <div className="text-xs text-gray-500 mt-1">Production cost</div>
           </div>
@@ -178,7 +179,7 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-sm text-gray-600 mb-1">Gross Profit</div>
             <div className="text-3xl font-bold text-blue-600">
-              ₹{sale.gross_profit.toFixed(2)}
+              ₹{formatNumber(sale.gross_profit)}
             </div>
             <div className="text-xs text-gray-500 mt-1">Revenue - Cost</div>
           </div>
@@ -193,7 +194,7 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
               sale.profit_margin >= 15 ? 'text-yellow-600' :
               'text-red-600'
             }`}>
-              {sale.profit_margin.toFixed(1)}%
+              {Math.round(sale.profit_margin)}%
             </div>
             <div className="text-xs text-gray-500 mt-1">
               {sale.profit_margin >= 30 ? 'Excellent' : 
@@ -231,15 +232,15 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 font-medium">{item.recipes?.name}</td>
                         <td className="px-4 py-3 text-right">{item.quantity}</td>
-                        <td className="px-4 py-3 text-right">₹{item.selling_price.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right">₹{formatNumber(item.selling_price)}</td>
                         <td className="px-4 py-3 text-right font-semibold text-green-600">
-                          ₹{item.total_revenue.toFixed(2)}
+                          ₹{formatNumber(item.total_revenue)}
                         </td>
                         <td className="px-4 py-3 text-right text-orange-600">
-                          ₹{item.total_cost.toFixed(2)}
+                          ₹{formatNumber(item.total_cost)}
                         </td>
                         <td className="px-4 py-3 text-right font-semibold text-blue-600">
-                          ₹{item.profit.toFixed(2)}
+                          ₹{formatNumber(item.profit)}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -247,7 +248,7 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
                             margin >= 15 ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800'
                           }`}>
-                            {margin.toFixed(1)}%
+                            {Math.round(margin)}%
                           </span>
                         </td>
                       </tr>
@@ -290,10 +291,10 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
                           {consumption.quantity_consumed} {consumption.unit}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          ₹{consumption.cost_per_unit?.toFixed(2) || '0.00'}
+                          ₹{formatNumber(consumption.cost_per_unit || 0)}
                         </td>
                         <td className="px-4 py-3 text-right font-semibold text-orange-600">
-                          ₹{consumption.total_cost?.toFixed(2) || '0.00'}
+                          ₹{formatNumber(consumption.total_cost || 0)}
                         </td>
                       </tr>
                     ))}
@@ -302,9 +303,9 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
                     <tr>
                       <td colSpan={3} className="px-4 py-3 text-right">TOTAL CONSUMPTION COST:</td>
                       <td className="px-4 py-3 text-right text-orange-600">
-                        ₹{sale.production_consumption.reduce((sum: number, c: any) => 
+                        ₹{formatNumber(sale.production_consumption.reduce((sum: number, c: any) => 
                           sum + (c.total_cost || 0), 0
-                        ).toFixed(2)}
+                        ))}
                       </td>
                     </tr>
                   </tfoot>

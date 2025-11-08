@@ -10,6 +10,7 @@ import { StockAdjustmentModal } from '@/app/components/StockAdjustmentModal';
 import { useSortable } from '@/lib/useSortable';
 import { SortableHeader } from '@/app/components/SortableHeader';
 import { usePermissions } from '@/lib/usePermissions';
+import { formatNumber } from '@/lib/formatNumber';
 
 interface StockIngredient extends Ingredient {
   stock_quantity: number;
@@ -140,9 +141,9 @@ export default function StockPage() {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(Math.round(amount));
   };
 
   const handleExportCSV = () => {
@@ -153,11 +154,11 @@ export default function StockPage() {
       const status = getStockStatus(ing);
       return [
         ing.name,
-        stock.toString(),
+        formatNumber(stock),
         ing.unit,
-        (ing.last_price || 0).toFixed(2),
-        value.toFixed(2),
-        (ing.reorder_point || ing.min_stock || 0).toString(),
+        formatNumber(ing.last_price || 0),
+        formatNumber(value),
+        formatNumber(ing.reorder_point || ing.min_stock || 0),
         status === 'ok' ? 'OK' : status === 'low' ? 'Low' : 'Out',
       ];
     });
@@ -371,7 +372,7 @@ export default function StockPage() {
                           </td>
                           <td className="px-4 py-3 text-sm text-right text-gray-900">
                             <div className="flex flex-col items-end">
-                              <span className="font-semibold">{stock.toFixed(2)}</span>
+                              <span className="font-semibold">{formatNumber(stock)}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">{ingredient.unit}</td>
@@ -381,7 +382,7 @@ export default function StockPage() {
                           <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
                             {formatCurrency(value)}
                           </td>
-                          <td className="px-4 py-3 text-sm text-right text-gray-600">{reorder}</td>
+                          <td className="px-4 py-3 text-sm text-right text-gray-600">{formatNumber(reorder)}</td>
                           <td className="px-4 py-3 text-center">
                             <span
                               className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${

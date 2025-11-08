@@ -11,6 +11,7 @@ import {
   DollarSign,
   TrendingUp
 } from 'lucide-react';
+import { formatNumber } from '@/lib/formatNumber';
 
 interface Recipe {
   id: string;
@@ -81,8 +82,8 @@ export default function NewSalePage() {
         updated[index].selling_price = selectedRecipe.selling_price?.toString() || '';  // AUTO-FILL!
         
         // Recalculate totals
-        const qty = parseFloat(updated[index].quantity || '0');
-        const price = selectedRecipe.selling_price || 0;
+        const qty = parseInt(updated[index].quantity || '0', 10) || 0;
+        const price = Math.round(selectedRecipe.selling_price || 0);
         updated[index].total_cost = qty * selectedRecipe.current_cost;
         updated[index].total_revenue = qty * price;
         updated[index].profit = updated[index].total_revenue! - updated[index].total_cost!;
@@ -93,8 +94,8 @@ export default function NewSalePage() {
     if (field === 'quantity' || field === 'selling_price') {
       const selectedRecipe = recipes.find(r => r.id === updated[index].recipe_id);
       if (selectedRecipe) {
-        const qty = parseFloat(field === 'quantity' ? value : updated[index].quantity || '0');
-        const price = parseFloat(field === 'selling_price' ? value : updated[index].selling_price || '0');
+        const qty = parseInt(field === 'quantity' ? value : updated[index].quantity || '0', 10) || 0;
+        const price = Math.round(parseFloat(field === 'selling_price' ? value : updated[index].selling_price || '0') || 0);
         updated[index].total_cost = qty * selectedRecipe.current_cost;
         updated[index].total_revenue = qty * price;
         updated[index].profit = updated[index].total_revenue! - updated[index].total_cost!;
@@ -151,8 +152,8 @@ export default function NewSalePage() {
           notes,
           items: saleItems.map(item => ({
             recipe_id: item.recipe_id,
-            quantity: parseInt(item.quantity),
-            selling_price: parseFloat(item.selling_price)
+            quantity: parseInt(item.quantity, 10) || 0,
+            selling_price: Math.round(parseFloat(item.selling_price) || 0)
           }))
         })
       });
@@ -270,12 +271,12 @@ export default function NewSalePage() {
                             <option value="">Select dish</option>
                             {item.recipe_id && !availableRecipes.find(r => r.id === item.recipe_id) && selectedRecipe && (
                               <option value={item.recipe_id}>
-                                {selectedRecipe.name} - ₹{selectedRecipe.current_cost.toFixed(2)} COGS
+                                {selectedRecipe.name} - ₹{formatNumber(selectedRecipe.current_cost)} COGS
                               </option>
                             )}
                             {availableRecipes.map(recipe => (
                               <option key={recipe.id} value={recipe.id}>
-                                {recipe.name} - ₹{recipe.current_cost.toFixed(2)} COGS
+                                {recipe.name} - ₹{formatNumber(recipe.current_cost)} COGS
                               </option>
                             ))}
                           </select>
@@ -300,7 +301,7 @@ export default function NewSalePage() {
                           <label className="block text-xs text-gray-600 mb-1">Price (₹) *</label>
                           <input
                             type="number"
-                            step="0.01"
+                            step="1"
                             min="0"
                             value={item.selling_price}
                             onChange={(e) => updateItem(index, 'selling_price', e.target.value)}
@@ -314,10 +315,10 @@ export default function NewSalePage() {
                         <div className="col-span-2">
                           <label className="block text-xs text-gray-600 mb-1">Revenue</label>
                           <div className="text-sm font-semibold text-green-600">
-                            ₹{(item.total_revenue || 0).toFixed(2)}
+                            ₹{formatNumber(item.total_revenue || 0)}
                           </div>
                           <div className="text-xs text-gray-500">
-                            Cost: ₹{(item.total_cost || 0).toFixed(2)}
+                            Cost: ₹{formatNumber(item.total_cost || 0)}
                           </div>
                         </div>
 
@@ -327,7 +328,7 @@ export default function NewSalePage() {
                           <div className={`text-sm font-semibold ${
                             (item.profit || 0) >= 0 ? 'text-blue-600' : 'text-red-600'
                           }`}>
-                            ₹{(item.profit || 0).toFixed(2)}
+                            ₹{formatNumber(item.profit || 0)}
                           </div>
                           <button
                             type="button"
@@ -348,19 +349,19 @@ export default function NewSalePage() {
                     <div className="bg-green-50 p-4 rounded-lg">
                       <div className="text-sm text-green-700 mb-1">Total Revenue</div>
                       <div className="text-2xl font-bold text-green-700">
-                        ₹{totals.totalRevenue.toFixed(2)}
+                        ₹{formatNumber(totals.totalRevenue)}
                       </div>
                     </div>
                     <div className="bg-orange-50 p-4 rounded-lg">
                       <div className="text-sm text-orange-700 mb-1">Total Cost</div>
                       <div className="text-2xl font-bold text-orange-700">
-                        ₹{totals.totalCost.toFixed(2)}
+                        ₹{formatNumber(totals.totalCost)}
                       </div>
                     </div>
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <div className="text-sm text-blue-700 mb-1">Gross Profit</div>
                       <div className="text-2xl font-bold text-blue-700">
-                        ₹{totals.totalProfit.toFixed(2)}
+                        ₹{formatNumber(totals.totalProfit)}
                       </div>
                     </div>
                     <div className="bg-purple-50 p-4 rounded-lg">
@@ -369,7 +370,7 @@ export default function NewSalePage() {
                         Profit Margin
                       </div>
                       <div className="text-2xl font-bold text-purple-700">
-                        {totals.profitMargin.toFixed(1)}%
+                        {Math.round(totals.profitMargin)}%
                       </div>
                     </div>
                   </div>

@@ -43,18 +43,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate numeric fields
-    if (
-      typeof current_stock !== 'number' ||
-      typeof min_stock !== 'number' ||
-      current_stock < 0 ||
-      min_stock < 0
-    ) {
+    // Validate min_stock
+    if (typeof min_stock !== 'number' || min_stock < 0) {
       return NextResponse.json(
-        { error: 'current_stock and min_stock must be non-negative numbers' },
+        { error: 'min_stock must be a non-negative number' },
         { status: 400 }
       );
     }
+
+    // current_stock is not required for new ingredients - default to 0
+    // It should be managed through the Stock page
+    const stockValue = current_stock !== undefined && typeof current_stock === 'number' && current_stock >= 0
+      ? current_stock
+      : 0;
 
     if (!unit || typeof unit !== 'string' || unit.trim() === '') {
       return NextResponse.json(
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       .insert({
         name: name.trim(),
         unit: unit.trim(),
-        current_stock,
+        current_stock: stockValue,
         min_stock,
       })
       .select('*')

@@ -26,7 +26,7 @@ interface LedgerTransaction {
   payment_method: string | null;
   reference: string;
   linked_id: string;
-  linked_type: 'payment' | 'sale';
+  linked_type: 'payment' | 'sale' | 'expense_payment';
   balance: number;
   created_at: string;
 }

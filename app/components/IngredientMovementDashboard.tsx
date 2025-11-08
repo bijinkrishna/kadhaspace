@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { IngredientMovementAnalysis, MovementStats } from '@/types';
+import { formatNumber } from '@/lib/formatNumber';
 
 export function IngredientMovementDashboard() {
   const [items, setItems] = useState<IngredientMovementAnalysis[]>([]);
@@ -252,10 +253,10 @@ function StatsCard({
       <div className="text-3xl font-bold">{count}</div>
       <div className="text-sm font-medium mt-1">{label}</div>
       <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-        {percentage.toFixed(1)}% of total
+        {Math.round(percentage)}% of total
       </div>
       <div className="text-xs font-semibold mt-2 pt-2 border-t border-current/20">
-        ₹{inventoryValue.toLocaleString()}
+        ₹{formatNumber(inventoryValue)}
       </div>
       <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
         Inventory Value
@@ -286,17 +287,17 @@ function IngredientRow({ item }: { item: IngredientMovementAnalysis }) {
     <tr className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</div>
-        <div className="text-xs text-gray-500 dark:text-gray-400">₹{item.last_price}/{item.unit}</div>
+        <div className="text-xs text-gray-500 dark:text-gray-400">₹{formatNumber(item.last_price)}/{item.unit}</div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-        {item.stock_quantity} {item.unit}
+        {formatNumber(item.stock_quantity)} {item.unit}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-        {item.consumption_last_30_days.toFixed(2)} {item.unit}
-        <div className="text-xs text-gray-500 dark:text-gray-400">₹{item.value_consumed_30_days.toFixed(0)}</div>
+        {formatNumber(item.consumption_last_30_days)} {item.unit}
+        <div className="text-xs text-gray-500 dark:text-gray-400">₹{formatNumber(item.value_consumed_30_days)}</div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-        {item.avg_daily_consumption.toFixed(2)} {item.unit}/day
+        {formatNumber(item.avg_daily_consumption)} {item.unit}/day
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm">
         {item.days_until_stockout !== null ? (
@@ -308,7 +309,7 @@ function IngredientRow({ item }: { item: IngredientMovementAnalysis }) {
         )}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-        {item.turnover_ratio !== null ? `${item.turnover_ratio.toFixed(2)}x` : 'N/A'}
+        {item.turnover_ratio !== null ? `${formatNumber(item.turnover_ratio)}x` : 'N/A'}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <span className={`px-2 py-1 text-xs font-medium rounded-full border ${

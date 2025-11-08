@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Home, Package, Users, FileText, ShoppingCart, PackageCheck, CreditCard, ChefHat, ShoppingBag, BookOpen, TrendingUp, Activity, User, Menu, X } from "lucide-react";
+import { Home, Package, Users, FileText, ShoppingCart, PackageCheck, CreditCard, ChefHat, ShoppingBag, BookOpen, TrendingUp, Activity, User, Menu, X, ClipboardList, Receipt, Shield, Wallet2 } from "lucide-react";
 import Link from "next/link";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { LogoutButton } from "./LogoutButton";
@@ -20,6 +20,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Hide certain navigation items for staff users
   const isStaff = role === 'staff';
+  const canSeeAccountsDashboard = ['admin', 'accounts'].includes(role || '');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -96,6 +97,26 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               >
                 <Home className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                 <span>Dashboard</span>
+              </Link>
+            )}
+            {!isStaff && canSeeAccountsDashboard && (
+              <Link
+                href="/accounts"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Wallet2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span>Accounts Hub</span>
+              </Link>
+            )}
+            {!isStaff && (
+              <Link
+                href="/manager/ops"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ClipboardList className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span>Manager Ops</span>
               </Link>
             )}
             <Link
@@ -182,6 +203,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             )}
             {!isStaff && (
               <Link
+                href="/expenses"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Receipt className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span>Other Expenses</span>
+              </Link>
+            )}
+            {!isStaff && (
+              <Link
                 href="/mtd-cogs"
                 onClick={() => setSidebarOpen(false)}
                 className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
@@ -198,6 +229,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Activity className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
               <span>Ingredient Movement</span>
             </Link>
+            {!isStaff && role === 'admin' && (
+              <Link
+                href="/admin"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-gray-100 rounded-lg transition-colors border-t border-gray-200 mt-2 pt-2"
+              >
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span>Admin</span>
+              </Link>
+            )}
           </nav>
         </aside>
 

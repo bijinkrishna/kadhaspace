@@ -15,6 +15,7 @@ import {
   Users
 } from 'lucide-react';
 import { usePermissions } from '@/lib/usePermissions';
+import { formatNumber } from '@/lib/formatNumber';
 
 interface CostBreakdown {
   ingredient_name: string;
@@ -249,7 +250,7 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-sm text-gray-600 mb-1">Cost per Portion</div>
             <div className="text-3xl font-bold text-green-600">
-              ₹{recipe.cost_per_portion.toFixed(2)}
+              ₹{formatNumber(recipe.cost_per_portion)}
             </div>
             <div className="text-xs text-gray-500 mt-1">
               COGS (Based on latest prices)
@@ -259,7 +260,7 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-sm text-gray-600 mb-1">Selling Price</div>
             <div className="text-3xl font-bold text-blue-600">
-              ₹{(recipe.selling_price || 0).toFixed(2)}
+              ₹{formatNumber(recipe.selling_price || 0)}
             </div>
             <div className="text-xs text-gray-500 mt-1">
               Menu price
@@ -310,16 +311,16 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
                     <tr key={idx} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium">{item.ingredient_name}</td>
                       <td className="px-4 py-3 text-right text-sm">
-                        {item.quantity_per_portion} {item.unit}
+                        {formatNumber(item.quantity_per_portion)} {item.unit}
                       </td>
                       <td className="px-4 py-3 text-right text-sm">
-                        {item.total_quantity} {item.unit}
+                        {formatNumber(item.total_quantity)} {item.unit}
                       </td>
                       <td className="px-4 py-3 text-right text-sm">
-                        ₹{item.unit_price.toFixed(2)}
+                        ₹{formatNumber(item.unit_price)}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold">
-                        ₹{item.total_cost.toFixed(2)}
+                        ₹{formatNumber(item.total_cost)}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -341,7 +342,7 @@ export default function RecipeDetailPage({ params }: { params: Promise<{ id: str
                   <tr>
                     <td colSpan={4} className="px-4 py-3 text-right">TOTAL:</td>
                     <td className="px-4 py-3 text-right text-lg">
-                      ₹{recipe.total_cost.toFixed(2)}
+                      ₹{formatNumber(recipe.total_cost)}
                     </td>
                     <td className="px-4 py-3 text-right">100%</td>
                   </tr>

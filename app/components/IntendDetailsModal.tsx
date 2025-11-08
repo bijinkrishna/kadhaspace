@@ -5,6 +5,7 @@ import { X, Loader2 } from 'lucide-react';
 import { Intend, IntendItem, Ingredient } from '@/types';
 import GeneratePOModal from '@/app/components/GeneratePOModal';
 import { usePermissions } from '@/lib/usePermissions';
+import { formatNumber } from '@/lib/formatNumber';
 
 interface IntendItemWithDetails extends IntendItem {
   ingredient: Ingredient | null;
@@ -462,10 +463,10 @@ export function IntendDetailsModal({
                                     // Item not in PO - show editable input
                                     <input
                                       type="number"
-                                      min="0.1"
-                                      step="0.1"
+                                      min="1"
+                                      step="1"
                                       value={orderQuantities[item.id] || item.quantity}
-                                      onChange={(e) => handleQuantityChange(item.id, parseFloat(e.target.value) || 0)}
+                                      onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value, 10) || 0)}
                                       disabled={!isSelected}
                                       className={`border border-gray-300 rounded px-2 py-1 w-24 text-sm ${
                                         isSelected
@@ -478,7 +479,7 @@ export function IntendDetailsModal({
 
                                 {/* Unit Price */}
                                 <td className="px-4 py-3 text-sm text-gray-900">
-                                  ₹{((item as any).unit_price || item.ingredient?.last_price || 0).toFixed(2)}
+                                  ₹{formatNumber((item as any).unit_price || item.ingredient?.last_price || 0)}
                                 </td>
                               </tr>
                             );

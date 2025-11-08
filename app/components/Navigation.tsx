@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Package, Users, FileText, Menu, X, ShoppingBag, BookOpen, TrendingUp, Activity } from 'lucide-react';
+import { Home, Package, Users, FileText, Menu, X, ShoppingBag, BookOpen, TrendingUp, Activity, Receipt } from 'lucide-react';
 import { useState } from 'react';
 
 const navigation = [
@@ -12,6 +12,7 @@ const navigation = [
   { name: 'Intends', href: '/intends', icon: FileText },
   { name: 'Sales & Production', href: '/sales', icon: ShoppingBag, description: 'Track sales and production' },
   { name: 'Cash Ledger', href: '/cash-ledger', icon: BookOpen, description: 'Track all revenue and expenditure' },
+  { name: 'Other Expenses', href: '/expenses', icon: Receipt, description: 'Manage other business expenses' },
   { name: 'MTD COGS', href: '/mtd-cogs', icon: TrendingUp, description: 'Month-to-date cost analysis' },
   { name: 'Ingredient Movement', href: '/ingredient-movement', icon: Activity, description: 'Analyze ingredient consumption and movement patterns' },
 ];

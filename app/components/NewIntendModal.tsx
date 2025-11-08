@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Trash2, Loader2 } from 'lucide-react';
 import { Ingredient } from '@/types';
 import { Toast } from '@/app/components/Toast';
+import { formatNumber } from '@/lib/formatNumber';
 
 interface IngredientRow {
   id: string; // Temporary ID for React keys
@@ -11,6 +12,7 @@ interface IngredientRow {
   ingredient_name: string;
   unit: string;
   last_price: number;
+  current_stock: number;
   quantity: number | '';
   remarks: string;
 }
@@ -29,12 +31,14 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
       ingredient_name: '',
       unit: '',
       last_price: 0,
+      current_stock: 0,
       quantity: '',
       remarks: '',
     },
   ]);
   
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [stockData, setStockData] = useState<any[]>([]);
   const [filteredIngredients, setFilteredIngredients] = useState<Ingredient[]>([]);
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
@@ -46,10 +50,11 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  // Fetch all ingredients on mount
+  // Fetch all ingredients and stock data on mount
   useEffect(() => {
     if (isOpen) {
       fetchIngredients();
+      fetchStockData();
     }
   }, [isOpen]);
 
@@ -84,6 +89,26 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
     }
   };
 
+  const fetchStockData = async () => {
+    try {
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/stock?_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch stock data');
+      }
+      const data = await response.json();
+      setStockData(data);
+    } catch (error) {
+      console.error('Error fetching stock data:', error);
+      // Don't show toast for stock fetch failure, just log it
+    }
+  };
+
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -108,6 +133,12 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
   };
 
   const handleIngredientSelect = (rowId: string, ingredient: Ingredient) => {
+    // Find stock data for this ingredient
+    const stockItem = stockData.find((item) => item.id === ingredient.id);
+    const currentStock = stockItem 
+      ? (stockItem.stock_quantity != null ? stockItem.stock_quantity : (stockItem.current_stock != null ? stockItem.current_stock : 0))
+      : 0;
+
     setRows((prev) =>
       prev.map((row) =>
         row.id === rowId
@@ -117,6 +148,7 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
               ingredient_name: ingredient.name,
               unit: ingredient.unit,
               last_price: ingredient.last_price || 0,
+              current_stock: currentStock,
             }
           : row
       )
@@ -133,7 +165,7 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
   };
 
   const handleQuantityChange = (rowId: string, value: string) => {
-    const numValue = value === '' ? '' : parseFloat(value);
+    const numValue = value === '' ? '' : parseInt(value, 10) || 0;
     setRows((prev) =>
       prev.map((row) =>
         row.id === rowId ? { ...row, quantity: numValue } : row
@@ -190,6 +222,7 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
         ingredient_name: '',
         unit: '',
         last_price: 0,
+        current_stock: 0,
         quantity: '',
         remarks: '',
       },
@@ -227,7 +260,7 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
         .map((row) => {
           const item: any = {
             ingredient_id: row.ingredient_id,
-            quantity: typeof row.quantity === 'number' ? row.quantity : parseFloat(row.quantity as string),
+            quantity: typeof row.quantity === 'number' ? Math.round(row.quantity) : parseInt(row.quantity as string, 10) || 0,
           };
 
           // Include remarks if provided
@@ -266,6 +299,7 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
           ingredient_name: '',
           unit: '',
           last_price: 0,
+          current_stock: 0,
           quantity: '',
           remarks: '',
         },
@@ -316,7 +350,7 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
             <div className="hidden md:grid md:grid-cols-5 gap-4 mb-3 pb-2 border-b border-gray-200">
               <div className="text-sm font-medium text-gray-600">Ingredient</div>
               <div className="text-sm font-medium text-gray-600">Unit</div>
-              <div className="text-sm font-medium text-gray-600">Last Price</div>
+              <div className="text-sm font-medium text-gray-600">Last Price / Stock</div>
               <div className="text-sm font-medium text-gray-600">Quantity</div>
               <div className="text-sm font-medium text-gray-600">Remarks</div>
             </div>
@@ -392,17 +426,24 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
                       />
                     </div>
 
-                    {/* Latest Price (read-only) */}
+                    {/* Latest Price and Current Stock (read-only) */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1 md:hidden">
-                        Last Price
+                        Last Price / Stock
                       </label>
-                      <input
-                        type="text"
-                        value={row.last_price > 0 ? `₹${row.last_price}` : '-'}
-                        readOnly
-                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded bg-gray-100 text-gray-600 cursor-not-allowed"
-                      />
+                      <div className="flex flex-col gap-1">
+                        <input
+                          type="text"
+                          value={row.last_price > 0 ? `₹${formatNumber(row.last_price)}` : '-'}
+                          readOnly
+                          className="w-full h-10 px-3 py-2 border border-gray-300 rounded bg-gray-100 text-gray-600 cursor-not-allowed text-sm"
+                        />
+                        {row.ingredient_id && (
+                          <div className="text-xs text-gray-500 px-3 py-1 bg-gray-50 rounded border border-gray-200">
+                            Stock: {formatNumber(row.current_stock)} {row.unit}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Quantity */}
@@ -412,7 +453,7 @@ export function NewIntendModal({ isOpen, onClose, onSuccess }: NewIntendModalPro
                       </label>
                       <input
                         type="number"
-                        step="0.01"
+                        step="1"
                         min="0"
                         value={row.quantity}
                         onChange={(e) => handleQuantityChange(row.id, e.target.value)}

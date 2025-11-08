@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const dateFrom = searchParams.get('date_from');
     const dateTo = searchParams.get('date_to');
 
-    // Fetch payments (Debit/Expenditure)
+    // Fetch payments (Debit/Expenditure) - PO payments
     let paymentsQuery = supabase
       .from('payments')
       .select(`
@@ -43,6 +43,46 @@ export async function GET(request: Request) {
       throw paymentsError;
     }
 
+    // Fetch other expense payments (Debit/Expenditure)
+    let expensePaymentsQuery = supabase
+      .from('other_expense_payments')
+      .select(`
+        id,
+        payment_date,
+        amount,
+        method,
+        reference,
+        created_at,
+        other_expenses!inner (
+          id,
+          expense_date,
+          amount,
+          tax_amount,
+          category:expense_categories (
+            name
+          ),
+          vendor:vendors (
+            name
+          )
+        )
+      `)
+      .order('payment_date', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (dateFrom) {
+      expensePaymentsQuery = expensePaymentsQuery.gte('payment_date', dateFrom);
+    }
+    if (dateTo) {
+      expensePaymentsQuery = expensePaymentsQuery.lte('payment_date', dateTo);
+    }
+
+    const { data: expensePayments, error: expensePaymentsError } = await expensePaymentsQuery;
+
+    if (expensePaymentsError) {
+      console.error('Error fetching expense payments:', expensePaymentsError);
+      // Don't throw, just log - continue with other data
+    }
+
     // Fetch sales (Credit/Revenue)
     let salesQuery = supabase
       .from('sales')
@@ -72,8 +112,8 @@ export async function GET(request: Request) {
       throw salesError;
     }
 
-    // Transform payments to ledger entries (Debit)
-    const debitEntries = (payments || []).map((payment: any) => ({
+    // Transform PO payments to ledger entries (Debit)
+    const poPaymentEntries = (payments || []).map((payment: any) => ({
       id: payment.id,
       transaction_id: payment.payment_number,
       date: payment.payment_date,
@@ -87,6 +127,32 @@ export async function GET(request: Request) {
       linked_type: 'payment' as const,
       created_at: payment.created_at,
     }));
+
+    // Transform expense payments to ledger entries (Debit)
+    const expensePaymentEntries = (expensePayments || []).map((expensePayment: any) => {
+      const expense = expensePayment.other_expenses;
+      const totalAmount = (expense?.amount || 0) + (expense?.tax_amount || 0);
+      const categoryName = expense?.category?.name || 'Other Expense';
+      const vendorName = expense?.vendor?.name;
+      
+      return {
+        id: `expense-payment-${expensePayment.id}`,
+        transaction_id: `EXP-${expensePayment.id}`,
+        date: expensePayment.payment_date,
+        type: 'DEBIT' as const,
+        category: 'Other Expense',
+        description: `Other Expense Payment - ${categoryName}${vendorName ? ` (${vendorName})` : ''}`,
+        amount: expensePayment.amount || 0,
+        payment_method: expensePayment.method,
+        reference: expensePayment.reference || `EXP-${expensePayment.id}`,
+        linked_id: expensePayment.id,
+        linked_type: 'expense_payment' as const,
+        created_at: expensePayment.created_at,
+      };
+    });
+
+    // Combine all debit entries
+    const debitEntries = [...poPaymentEntries, ...expensePaymentEntries];
 
     // Transform sales to ledger entries (Credit)
     const creditEntries = (sales || []).map((sale: any) => ({
