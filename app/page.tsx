@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Package,
@@ -26,6 +26,7 @@ import { DailySalesChart } from '@/app/components/charts/DailySalesChart';
 import { MonthlyComparisonChart } from '@/app/components/charts/MonthlyComparisonChart';
 import { ProfitMarginChart } from '@/app/components/charts/ProfitMarginChart';
 import OpexTile from '@/app/components/OpexTile';
+import { usePermissions } from '@/lib/usePermissions';
 
 interface DashboardData {
   totalIngredients: number;
@@ -174,12 +175,9 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'month' | 'today'>('month');
+  const { role, loading: roleLoading } = usePermissions();
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch('/api/dashboard?t=' + Date.now(), {
@@ -192,7 +190,23 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!roleLoading && role === 'staff') {
+      router.replace('/staff');
+    }
+  }, [role, roleLoading, router]);
+
+  useEffect(() => {
+    if (!roleLoading && role !== 'staff') {
+      fetchDashboardData();
+    }
+  }, [role, roleLoading, fetchDashboardData]);
+
+  if (!roleLoading && role === 'staff') {
+    return null;
+  }
 
   if (loading) {
     return (

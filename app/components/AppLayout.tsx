@@ -89,16 +89,24 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            {!isStaff && (
+            {isStaff && (
               <Link
-                href="/"
+                href="/staff"
                 onClick={() => setSidebarOpen(false)}
                 className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <Home className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>Dashboard</span>
+                <span>Staff Hub</span>
               </Link>
             )}
+            <Link
+              href={isStaff ? '/staff' : '/'}
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Home className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span>{isStaff ? 'Staff Hub' : 'Dashboard'}</span>
+            </Link>
             {!isStaff && canSeeAccountsDashboard && (
               <Link
                 href="/accounts"

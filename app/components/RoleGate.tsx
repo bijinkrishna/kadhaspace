@@ -90,4 +90,18 @@ export function ManagerOnly({
   );
 }
 
+export function StaffOnly({
+  children,
+  fallback,
+}: {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}) {
+  return (
+    <RoleGate allowedRoles={['staff']} fallback={fallback}>
+      {children}
+    </RoleGate>
+  );
+}
+
 
